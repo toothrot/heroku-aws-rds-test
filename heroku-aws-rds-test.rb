@@ -15,7 +15,12 @@ class HerokuAwsRdsTest
 
   class App < Sinatra::Base
     get '/' do
-      HerokuAwsRdsTest.pg_connection.exec('select NOW() AS current_time').first["current_time"]
+      require 'benchmark'
+      output = ""
+      output << Benchmark.bm do |x|
+        x.report("Query current time") { output << "#{HerokuAwsRdsTest.pg_connection.exec('select NOW() AS current_time').first["current_time"]}<br/>" }
+      end.first.format("%n: user: %u system: %y total: %t real: %r")
+      output
     end
   end
 end
