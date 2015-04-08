@@ -3,3 +3,5 @@ ruby '2.2.1'
 
 gem 'sinatra'
 gem 'puma'
+gem 'dotenv'
+gem 'pg'

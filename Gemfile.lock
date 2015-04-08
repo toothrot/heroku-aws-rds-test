@@ -1,6 +1,8 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    dotenv (2.0.1)
+    pg (0.18.1)
     puma (2.11.1)
       rack (>= 1.1, < 2.0)
     rack (1.6.0)
@@ -16,5 +18,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  dotenv
+  pg
   puma
   sinatra
