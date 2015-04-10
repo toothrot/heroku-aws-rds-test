@@ -33,6 +33,10 @@ class HerokuAwsRdsTest
       connection.exec("select 1")
     end
 
+    def select_all(connection)
+      connection.exec("select * from foo")
+    end
+
     def insert(connection, value)
       connection.exec("insert into foo values(#{value})")
     end
@@ -59,6 +63,8 @@ class HerokuAwsRdsTest
         x.report("Heroku 1000x SELECT 1") { 1_000.times { select_1(HerokuAwsRdsTest.amazon_rds_connection) } }
         x.report("RDS 100x INSERT 1") { 100.times { insert(HerokuAwsRdsTest.amazon_rds_connection, 1) } }
         x.report("Heroku 100x INSERT 1") { 100.times { insert(HerokuAwsRdsTest.amazon_rds_connection, 1) } }
+        x.report("RDS 100x SELECT *") { 100.times { select_all(HerokuAwsRdsTest.amazon_rds_connection) } }
+        x.report("Heroku 100x SELECT *") { 100.times { select_all(HerokuAwsRdsTest.amazon_rds_connection) } }
         x.report("RDS Truncate") { truncate(HerokuAwsRdsTest.amazon_rds_connection)  }
         x.report("Heroku Truncate") { truncate(HerokuAwsRdsTest.amazon_rds_connection)  }
       end.map {|report| report.format("<tr><td>%n:</td> <td>user: %u</td> <td>system: %y</td> <td>total: %t</td> <td>real: %r</td></tr>") }.join('')
