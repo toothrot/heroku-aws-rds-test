@@ -56,7 +56,7 @@ class HerokuAwsRdsTest
       create_table(HerokuAwsRdsTest.amazon_rds_connection)
       create_table(HerokuAwsRdsTest.heroku_postgres_connection)
 
-      output << Benchmark.bmbm do |x|
+      output << Benchmark.bm do |x|
         x.report("RDS Query current time") { HerokuAwsRdsTest.amazon_rds_connection.exec('select NOW() AS current_time').first["current_time"] }
         x.report("Heroku Query current time") { HerokuAwsRdsTest.heroku_postgres_connection.exec('select NOW() AS current_time').first["current_time"] }
         x.report("RDS 1000x SELECT 1") { 1_000.times { select_1(HerokuAwsRdsTest.amazon_rds_connection) } }
