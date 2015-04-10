@@ -24,25 +24,45 @@ class HerokuAwsRdsTest
 
   class App < Sinatra::Base
 
+    def create_table(connection)
+      connection.exec("drop table if exists foo")
+      connection.exec("create table foo (id integer)")
+    end
+
     def select_1(connection)
       connection.exec("select 1")
     end
 
+    def insert(connection, value)
+      connection.exec("insert into foo values(#{value})")
+    end
+
+    def truncate(connection)
+      connection.exec("truncate foo")
+    end
+
     get '/' do
       require 'benchmark'
-      output = ""
+      output = "<table>"
       output << Benchmark.bm do |x|
         x.report("RDS Connect") { HerokuAwsRdsTest.amazon_rds_connection }
         x.report("Heroku Connect") { HerokuAwsRdsTest.amazon_rds_connection }
-      end.map {|report| report.format("%n: user: %u system: %y total: %t real: %r") }.join("<br/>")
-      output << "<br/>"
+      end.map {|report| report.format("<tr><td>%n:</td> <td>user: %u</td> <td>system: %y</td> <td>total: %t</td> <td>real: %r</td></tr>") }.join('')
+
+      create_table(HerokuAwsRdsTest.amazon_rds_connection)
+      create_table(HerokuAwsRdsTest.heroku_postgres_connection)
 
       output << Benchmark.bmbm do |x|
         x.report("RDS Query current time") { HerokuAwsRdsTest.amazon_rds_connection.exec('select NOW() AS current_time').first["current_time"] }
         x.report("Heroku Query current time") { HerokuAwsRdsTest.heroku_postgres_connection.exec('select NOW() AS current_time').first["current_time"] }
         x.report("RDS 1000x SELECT 1") { 1_000.times { select_1(HerokuAwsRdsTest.amazon_rds_connection) } }
         x.report("Heroku 1000x SELECT 1") { 1_000.times { select_1(HerokuAwsRdsTest.amazon_rds_connection) } }
-      end.map {|report| report.format("%n: user: %u system: %y total: %t real: %r") }.join("<br/>")
+        x.report("RDS 100x INSERT 1") { 100.times { insert(HerokuAwsRdsTest.amazon_rds_connection, 1) } }
+        x.report("Heroku 100x INSERT 1") { 100.times { insert(HerokuAwsRdsTest.amazon_rds_connection, 1) } }
+        x.report("RDS Truncate") { truncate(HerokuAwsRdsTest.amazon_rds_connection)  }
+        x.report("Heroku Truncate") { truncate(HerokuAwsRdsTest.amazon_rds_connection)  }
+      end.map {|report| report.format("<tr><td>%n:</td> <td>user: %u</td> <td>system: %y</td> <td>total: %t</td> <td>real: %r</td></tr>") }.join('')
+      output << "</table>"
       output
     end
   end
