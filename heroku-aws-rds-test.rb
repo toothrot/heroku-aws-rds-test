@@ -23,6 +23,11 @@ class HerokuAwsRdsTest
   end
 
   class App < Sinatra::Base
+
+    def select_1(connection)
+      connection.exec("select 1")
+    end
+
     get '/' do
       require 'benchmark'
       output = ""
@@ -31,6 +36,8 @@ class HerokuAwsRdsTest
         x.report("Heroku Connect") { HerokuAwsRdsTest.amazon_rds_connection }
         x.report("RDS Query current time") { output << "#{HerokuAwsRdsTest.amazon_rds_connection.exec('select NOW() AS current_time').first["current_time"]}<br/>" }
         x.report("Heroku Query current time") { output << "#{HerokuAwsRdsTest.heroku_postgres_connection.exec('select NOW() AS current_time').first["current_time"]}<br/>" }
+        x.report("RDS 1000x SELECT 1") { 1_000.times { select_1(HerokuAwsRdsTest.amazon_rds_connection) } }
+        x.report("Heroku 1000x SELECT 1") { 1_000.times { select_1(HerokuAwsRdsTest.amazon_rds_connection) } }
       end.map {|report| report.format("%n: user: %u system: %y total: %t real: %r") }.join("<br/>")
       output
     end
